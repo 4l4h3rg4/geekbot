@@ -17,6 +17,18 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
   const [displayedContent, setDisplayedContent] = useState('');
   const isBot = message.sender === 'bot';
   
+  // Function to convert markdown-style links to HTML links
+  const formatContent = (content: string) => {
+    // Pattern to match [text](url)
+    const linkPattern = /\[([^\]]+)\]\(([^)]+)\)/g;
+    const formattedContent = content.replace(linkPattern, (match, text, url) => {
+      return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="text-geeky-magenta hover:text-geeky-cyan underline">${text}</a>`;
+    });
+    
+    // Replace line breaks with <br />
+    return formattedContent.replace(/\n/g, '<br />');
+  };
+  
   useEffect(() => {
     let timeout: NodeJS.Timeout;
     
@@ -60,12 +72,17 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
           ? "bg-muted/30 border border-geeky-purple/30 text-white ml-0" 
           : "bg-geeky-purple/20 border border-geeky-cyan/30 text-geeky-cyan/90 ml-auto"
       )}>
-        <div className={cn(
-          "font-mono text-sm leading-relaxed",
-          isBot && isTyping ? "after:content-['|'] after:ml-0.5 after:animate-cursor-blink" : ""
-        )}>
-          {displayedContent}
-        </div>
+        <div 
+          className={cn(
+            "font-mono text-sm leading-relaxed",
+            isBot && isTyping ? "after:content-['|'] after:ml-0.5 after:animate-cursor-blink" : ""
+          )}
+          dangerouslySetInnerHTML={
+            !isTyping 
+              ? { __html: formatContent(displayedContent) } 
+              : { __html: displayedContent }
+          }
+        />
         <div className={cn(
           "text-[10px] font-pixel mt-2 opacity-50",
           isBot ? "text-geeky-green" : "text-geeky-cyan"
