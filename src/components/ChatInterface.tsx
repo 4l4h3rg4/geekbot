@@ -17,7 +17,8 @@ const ChatInterface = () => {
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
-  const webhookUrl = "https://n8n.zonenter.blog/webhook-test/b09398a5-b7ea-4829-a5e9-88a069a00536";
+  // Actualizado el webhook URL
+  const webhookUrl = "https://n8n.zonenter.blog/webhook/b09398a5-b7ea-4829-a5e9-88a069a00536";
   const welcomeMessage = "¡Saludos, viajero del multiverso geek! Soy GeekyBot, tu guía definitivo en este vasto universo de cultura friki. ¿Sobre qué quieres hablar hoy? ¿Videojuegos? ¿Anime? ¿Cómics? ¿Películas de ciencia ficción? ¡Estoy aquí para compartir conocimiento y diversión!";
   
   useEffect(() => {

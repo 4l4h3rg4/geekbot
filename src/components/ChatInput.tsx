@@ -26,7 +26,12 @@ const ChatInput = ({ onSendMessage, isLoading = false }: ChatInputProps) => {
     >
       <button
         type="button"
-        className="p-2 text-geeky-green hover:text-geeky-cyan transition-colors"
+        className={cn(
+          "p-2 transition-colors",
+          isLoading 
+            ? "text-geeky-green/40" 
+            : "text-geeky-green hover:text-geeky-cyan"
+        )}
         disabled={isLoading}
       >
         <Joystick className="h-5 w-5" />
@@ -36,14 +41,22 @@ const ChatInput = ({ onSendMessage, isLoading = false }: ChatInputProps) => {
         type="text"
         value={message}
         onChange={(e) => setMessage(e.target.value)}
-        placeholder={isLoading ? "Esperando respuesta..." : "> Type your message..."}
-        className="bg-transparent w-full px-4 py-2 text-white placeholder:text-muted-foreground/50 font-mono focus:outline-none"
+        placeholder={isLoading ? "Espera a que GeekyBot termine de responder..." : "> Type your message..."}
+        className={cn(
+          "bg-transparent w-full px-4 py-2 text-white placeholder:text-muted-foreground/50 font-mono focus:outline-none transition-opacity",
+          isLoading && "opacity-50"
+        )}
         disabled={isLoading}
       />
       
       <button
         type="button"
-        className="p-2 text-geeky-magenta hover:text-geeky-cyan transition-colors"
+        className={cn(
+          "p-2 transition-colors",
+          isLoading 
+            ? "text-geeky-magenta/40" 
+            : "text-geeky-magenta hover:text-geeky-cyan"
+        )}
         disabled={isLoading}
       >
         <Gamepad2 className="h-5 w-5" />

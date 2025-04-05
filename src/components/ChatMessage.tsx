@@ -21,20 +21,22 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
     let timeout: NodeJS.Timeout;
     
     if (isBot) {
-      // Add typing animation for bot messages
+      // Add typing animation for bot messages - increased typing speed
       let currentIndex = 0;
       
       const typeNextChar = () => {
         if (currentIndex < message.content.length) {
           setDisplayedContent(message.content.slice(0, currentIndex + 1));
           currentIndex++;
-          timeout = setTimeout(typeNextChar, Math.random() * 50 + 20);
+          // Reduced delay between characters for faster typing (was 20-70ms, now 10-30ms)
+          timeout = setTimeout(typeNextChar, Math.random() * 20 + 10);
         } else {
           setIsTyping(false);
         }
       };
       
-      timeout = setTimeout(typeNextChar, 500);
+      // Reduced initial delay before typing starts (was 500ms, now 200ms)
+      timeout = setTimeout(typeNextChar, 200);
     } else {
       setDisplayedContent(message.content);
       setIsTyping(false);
