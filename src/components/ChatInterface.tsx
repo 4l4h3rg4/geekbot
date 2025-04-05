@@ -112,7 +112,6 @@ const ChatInterface = () => {
       toast("Error de conexión", {
         description: "No se pudo conectar con n8n",
         icon: <Bot className="h-4 w-4 text-red-500" />,
-        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
