@@ -73,17 +73,19 @@ const ChatInterface = () => {
       
       // Get response from n8n
       const data = await response.json();
+      console.log("Response from n8n:", data);
       
       // Save session ID if it doesn't exist
       if (!localStorage.getItem('geekybot_session_id')) {
         localStorage.setItem('geekybot_session_id', Date.now().toString());
       }
       
-      // Add bot response to chat
+      // Add bot response to chat - check for different response formats
+      const botResponse = data.output || data.botResponse || data.message || "¡Vaya! Parece que mis circuitos están un poco confundidos. ¿Puedes intentar reformular tu pregunta?";
+      
       const botMessage: Message = {
         id: Date.now().toString(),
-        // Use the response from n8n or fallback to a default message
-        content: data.botResponse || "¡Vaya! Parece que mis circuitos están un poco confundidos. ¿Puedes intentar reformular tu pregunta?",
+        content: botResponse,
         sender: 'bot',
         timestamp: new Date()
       };
