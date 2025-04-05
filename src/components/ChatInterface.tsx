@@ -14,8 +14,10 @@ interface Message {
 
 const ChatInterface = () => {
   const [messages, setMessages] = useState<Message[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
+  const webhookUrl = "https://n8n.zonenter.blog/webhook-test/b09398a5-b7ea-4829-a5e9-88a069a00536";
   const welcomeMessage = "¡Saludos, viajero del multiverso geek! Soy GeekyBot, tu guía definitivo en este vasto universo de cultura friki. ¿Sobre qué quieres hablar hoy? ¿Videojuegos? ¿Anime? ¿Cómics? ¿Películas de ciencia ficción? ¡Estoy aquí para compartir conocimiento y diversión!";
   
   useEffect(() => {
@@ -37,50 +39,84 @@ const ChatInterface = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
   
-  const handleSendMessage = (content: string) => {
-    const newMessage: Message = {
+  const handleSendMessage = async (content: string) => {
+    if (!content.trim()) return;
+    
+    // Add user message to chat
+    const userMessage: Message = {
       id: Date.now().toString(),
       content,
       sender: 'user',
       timestamp: new Date()
     };
     
-    setMessages([...messages, newMessage]);
+    setMessages(prev => [...prev, userMessage]);
+    setIsLoading(true);
     
-    // Simulate response from the external AI
-    simulateBotResponse(content);
-  };
-  
-  const simulateBotResponse = (userMessage: string) => {
-    // In a real implementation, this would call the external AI service
-    // For now, we'll just simulate a response
-    setTimeout(() => {
-      const botResponses = [
-        "¡Eso suena fascinante! Como fan de la cultura geek, puedo decirte que hay múltiples universos que exploran ese concepto.",
-        "Según mis circuitos de conocimiento gaming, ese juego es considerado un clásico de culto. ¡Excelente gusto!",
-        "En el multiverso del anime, ese personaje tiene varias versiones. Mi favorita es la del universo alternativo del manga.",
-        "¡Por las barbas de Gandalf! Esa es una referencia oscura pero increíble. Solo verdaderos conocedores como tú la mencionarían.",
-        "Mis sensores detectan que eres alguien de cultura. Ese tema es fascinante tanto en los cómics como en su adaptación cinematográfica.",
-        "¡Santo píxel! Esa saga de videojuegos marcó una generación completa de jugadores. ¿Has probado la remasterización?"
-      ];
+    try {
+      // Send message to n8n webhook
+      const response = await fetch(webhookUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userMessage: content,
+          timestamp: new Date().toISOString(),
+          sessionId: localStorage.getItem('geekybot_session_id') || Date.now().toString()
+        }),
+      });
       
-      const randomResponse = botResponses[Math.floor(Math.random() * botResponses.length)];
+      if (!response.ok) {
+        throw new Error(`Error: ${response.status}`);
+      }
       
+      // Get response from n8n
+      const data = await response.json();
+      
+      // Save session ID if it doesn't exist
+      if (!localStorage.getItem('geekybot_session_id')) {
+        localStorage.setItem('geekybot_session_id', Date.now().toString());
+      }
+      
+      // Add bot response to chat
       const botMessage: Message = {
         id: Date.now().toString(),
-        content: randomResponse,
+        // Use the response from n8n or fallback to a default message
+        content: data.botResponse || "¡Vaya! Parece que mis circuitos están un poco confundidos. ¿Puedes intentar reformular tu pregunta?",
         sender: 'bot',
         timestamp: new Date()
       };
       
-      setMessages(messages => [...messages, botMessage]);
+      setMessages(prev => [...prev, botMessage]);
       
       // Show a toast notification
       toast("Nuevo mensaje de GeekyBot", {
         description: "GeekyBot ha respondido a tu mensaje",
         icon: <Bot className="h-4 w-4 text-geeky-green" />,
       });
-    }, 1500);
+      
+    } catch (error) {
+      console.error("Error al conectar con n8n:", error);
+      
+      // Add error message
+      const errorMessage: Message = {
+        id: Date.now().toString(),
+        content: "¡Ops! Parece que hay un problema en la matriz. No pude conectarme con mi base de conocimiento. ¿Podrías intentar de nuevo en un momento?",
+        sender: 'bot',
+        timestamp: new Date()
+      };
+      
+      setMessages(prev => [...prev, errorMessage]);
+      
+      toast("Error de conexión", {
+        description: "No se pudo conectar con n8n",
+        icon: <Bot className="h-4 w-4 text-red-500" />,
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
   
   return (
@@ -124,13 +160,21 @@ const ChatInterface = () => {
           {messages.map(message => (
             <ChatMessage key={message.id} message={message} />
           ))}
+          {isLoading && (
+            <div className="flex items-center gap-2 text-geeky-green font-mono text-sm">
+              <div className="animate-pulse h-2 w-2 rounded-full bg-geeky-green"></div>
+              <div className="animate-pulse h-2 w-2 rounded-full bg-geeky-green" style={{ animationDelay: "0.2s" }}></div>
+              <div className="animate-pulse h-2 w-2 rounded-full bg-geeky-green" style={{ animationDelay: "0.4s" }}></div>
+              <span className="text-xs ml-2">GeekyBot está pensando...</span>
+            </div>
+          )}
           <div ref={messagesEndRef} />
         </div>
       </div>
       
       {/* Input area */}
       <div className="p-4 bg-geeky-dark/80">
-        <ChatInput onSendMessage={handleSendMessage} />
+        <ChatInput onSendMessage={handleSendMessage} isLoading={isLoading} />
         <div className="mt-2 text-[10px] font-mono text-geeky-purple/50 text-center">
           Sistema de comunicación interdimensional // Protocolo Geek v1.0 // Error rate: 0.01%
         </div>

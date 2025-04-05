@@ -5,14 +5,15 @@ import { cn } from '@/lib/utils';
 
 interface ChatInputProps {
   onSendMessage: (message: string) => void;
+  isLoading?: boolean;
 }
 
-const ChatInput = ({ onSendMessage }: ChatInputProps) => {
+const ChatInput = ({ onSendMessage, isLoading = false }: ChatInputProps) => {
   const [message, setMessage] = useState('');
   
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (message.trim() !== '') {
+    if (message.trim() !== '' && !isLoading) {
       onSendMessage(message);
       setMessage('');
     }
@@ -26,6 +27,7 @@ const ChatInput = ({ onSendMessage }: ChatInputProps) => {
       <button
         type="button"
         className="p-2 text-geeky-green hover:text-geeky-cyan transition-colors"
+        disabled={isLoading}
       >
         <Joystick className="h-5 w-5" />
       </button>
@@ -34,28 +36,30 @@ const ChatInput = ({ onSendMessage }: ChatInputProps) => {
         type="text"
         value={message}
         onChange={(e) => setMessage(e.target.value)}
-        placeholder="> Type your message..."
+        placeholder={isLoading ? "Esperando respuesta..." : "> Type your message..."}
         className="bg-transparent w-full px-4 py-2 text-white placeholder:text-muted-foreground/50 font-mono focus:outline-none"
+        disabled={isLoading}
       />
       
       <button
         type="button"
         className="p-2 text-geeky-magenta hover:text-geeky-cyan transition-colors"
+        disabled={isLoading}
       >
         <Gamepad2 className="h-5 w-5" />
       </button>
       
       <button
         type="submit"
-        disabled={!message.trim()}
+        disabled={!message.trim() || isLoading}
         className={cn(
           "p-2 rounded-md transition-all duration-300",
-          message.trim() 
+          message.trim() && !isLoading
             ? "text-geeky-cyan bg-geeky-cyan/10 hover:bg-geeky-cyan/20" 
             : "text-muted-foreground"
         )}
       >
-        <Send className="h-5 w-5" />
+        <Send className={cn("h-5 w-5", isLoading && "animate-pulse")} />
       </button>
     </form>
   );
