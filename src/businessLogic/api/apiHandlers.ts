@@ -19,7 +19,8 @@ const jsonResponse = (data: any, status = 200) => {
       'Content-Type': 'application/json',
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
     },
   });
 };
@@ -31,91 +32,218 @@ const handleCORS = () => {
     headers: {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
     },
   });
 };
 
 // Setup API handlers
 export const setupAPIHandlers = () => {
-  const originalFetch = window.fetch;
-  
-  window.fetch = async function(input: RequestInfo | URL, init?: RequestInit) {
-    const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
+  // Crear un Express app virtual para manejar endpoints de API
+  const apiHandler = async (request: Request): Promise<Response> => {
+    const url = new URL(request.url);
+    const method = request.method;
+    const path = url.pathname;
     
-    if (typeof url === 'string' && url.startsWith('/api/')) {
-      console.log(`API Request: ${init?.method || 'GET'} ${url}`);
-      
-      // Manejar preflight CORS
-      if (init?.method === 'OPTIONS') {
-        return handleCORS();
-      }
-
-      // Mensaje de bienvenida endpoints
-      if (url.endsWith('/api/mensaje_bienvenida')) {
-        try {
-          if (init?.method === 'GET' || !init?.method) {
-            const data = await fetchWelcomeMessage();
-            return jsonResponse(data);
-          } 
-          if (init?.method === 'PUT') {
-            const body = await parseRequestBody(new Request(input, init));
-            const data = await updateWelcomeMessage(body.content || body.contenido);
-            return jsonResponse(data);
-          }
-        } catch (error) {
-          return jsonResponse({ error: 'Error processing welcome message request' }, 500);
-        }
-      }
-      
-      // Anuncios endpoints
-      if (url.endsWith('/api/anuncios/activos')) {
-        try {
-          const data = await fetchActiveAds();
-          return jsonResponse(data);
-        } catch (error) {
-          return jsonResponse({ error: 'Error fetching active ads' }, 500);
-        }
-      }
-      
-      if (url.match(/\/api\/anuncios\/?$/)) {
-        try {
-          if (init?.method === 'GET') {
-            const data = await fetchActiveAds();
-            return jsonResponse(data);
-          }
-          if (init?.method === 'POST') {
-            const body = await parseRequestBody(new Request(input, init));
-            const data = await createAd(body);
-            return jsonResponse(data, 201);
-          }
-        } catch (error) {
-          return jsonResponse({ error: 'Error processing ads request' }, 500);
-        }
-      }
-      
-      if (url.match(/\/api\/anuncios\/\d+$/)) {
-        try {
-          const id = parseInt(url.split('/').pop() || '0');
-          
-          if (init?.method === 'PUT') {
-            const body = await parseRequestBody(new Request(input, init));
-            const data = await updateAd(id, body);
-            return jsonResponse(data);
-          }
-          
-          if (init?.method === 'DELETE') {
-            await deleteAd(id);
-            return jsonResponse({ success: true });
-          }
-        } catch (error) {
-          return jsonResponse({ error: 'Error processing ad operation' }, 500);
-        }
-      }
-      
-      return jsonResponse({ error: 'Not found' }, 404);
+    console.log(`API Request: ${method} ${path}`);
+    
+    // Manejar preflight CORS
+    if (method === 'OPTIONS') {
+      return handleCORS();
     }
     
-    return originalFetch.apply(window, [input, init]);
+    // Mensaje de bienvenida endpoints
+    if (path === '/api/mensaje_bienvenida') {
+      try {
+        if (method === 'GET') {
+          const data = await fetchWelcomeMessage();
+          return jsonResponse(data);
+        } 
+        if (method === 'PUT') {
+          const body = await parseRequestBody(request);
+          const data = await updateWelcomeMessage(body.content || body.contenido);
+          return jsonResponse(data);
+        }
+      } catch (error) {
+        console.error('Error en endpoint mensaje_bienvenida:', error);
+        return jsonResponse({ error: 'Error processing welcome message request' }, 500);
+      }
+    }
+    
+    // Anuncios endpoints
+    if (path === '/api/anuncios/activos') {
+      try {
+        if (method === 'GET') {
+          const data = await fetchActiveAds();
+          return jsonResponse(data);
+        }
+      } catch (error) {
+        console.error('Error en endpoint anuncios/activos:', error);
+        return jsonResponse({ error: 'Error fetching active ads' }, 500);
+      }
+    }
+    
+    if (path === '/api/anuncios') {
+      try {
+        if (method === 'GET') {
+          const data = await fetchActiveAds();
+          return jsonResponse(data);
+        }
+        if (method === 'POST') {
+          const body = await parseRequestBody(request);
+          const data = await createAd(body);
+          return jsonResponse(data, 201);
+        }
+      } catch (error) {
+        console.error('Error en endpoint anuncios:', error);
+        return jsonResponse({ error: 'Error processing ads request' }, 500);
+      }
+    }
+    
+    // Manejar operaciones para anuncios específicos (/api/anuncios/1)
+    const anuncioPattern = /^\/api\/anuncios\/(\d+)$/;
+    const anuncioMatch = path.match(anuncioPattern);
+    
+    if (anuncioMatch) {
+      try {
+        const id = parseInt(anuncioMatch[1]);
+        
+        if (method === 'PUT') {
+          const body = await parseRequestBody(request);
+          const data = await updateAd(id, body);
+          return jsonResponse(data);
+        }
+        
+        if (method === 'DELETE') {
+          await deleteAd(id);
+          return jsonResponse({ success: true });
+        }
+      } catch (error) {
+        console.error('Error en operación de anuncio específico:', error);
+        return jsonResponse({ error: 'Error processing ad operation' }, 500);
+      }
+    }
+    
+    // Si no coincide con ninguna ruta de API
+    return jsonResponse({ error: 'Not found', path }, 404);
   };
+  
+  // Registrar el interceptor de fetch para API
+  if (typeof window !== 'undefined') {
+    const originalFetch = window.fetch;
+    
+    window.fetch = async function(input: RequestInfo | URL, init?: RequestInit) {
+      const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
+      
+      if (typeof url === 'string' && url.startsWith('/api/')) {
+        // En entorno de producción, usar la misma URL base que la aplicación
+        const apiUrl = new URL(url, window.location.origin);
+        return apiHandler(new Request(apiUrl, init || {}));
+      }
+      
+      // Para todas las demás solicitudes, usar el fetch original
+      return originalFetch.apply(window, [input, init]);
+    };
+  }
+};
+
+// Exportar handler para su uso en entornos de servidor (para Vite preview o producción)
+export const handleApiRequest = async (request: Request): Promise<Response | undefined> => {
+  const url = new URL(request.url);
+  
+  // Solo procesar rutas de API
+  if (url.pathname.startsWith('/api/')) {
+    return await apiHandler(request);
+  }
+  
+  // Para rutas no-API, dejar que el servidor maneje normalmente
+  return undefined;
+};
+
+// Definir apiHandler fuera para que esté disponible para ambos: fetch interceptor y express middleware
+const apiHandler = async (request: Request): Promise<Response> => {
+  const url = new URL(request.url);
+  const method = request.method;
+  const path = url.pathname;
+  
+  console.log(`API Request: ${method} ${path}`);
+  
+  // Manejar preflight CORS
+  if (method === 'OPTIONS') {
+    return handleCORS();
+  }
+  
+  // Mensaje de bienvenida endpoints
+  if (path === '/api/mensaje_bienvenida') {
+    try {
+      if (method === 'GET') {
+        const data = await fetchWelcomeMessage();
+        return jsonResponse(data);
+      } 
+      if (method === 'PUT') {
+        const body = await parseRequestBody(request);
+        const data = await updateWelcomeMessage(body.content || body.contenido);
+        return jsonResponse(data);
+      }
+    } catch (error) {
+      console.error('Error en endpoint mensaje_bienvenida:', error);
+      return jsonResponse({ error: 'Error processing welcome message request' }, 500);
+    }
+  }
+  
+  // Anuncios endpoints
+  if (path === '/api/anuncios/activos') {
+    try {
+      const data = await fetchActiveAds();
+      return jsonResponse(data);
+    } catch (error) {
+      console.error('Error en endpoint anuncios/activos:', error);
+      return jsonResponse({ error: 'Error fetching active ads' }, 500);
+    }
+  }
+  
+  if (path === '/api/anuncios') {
+    try {
+      if (method === 'GET') {
+        const data = await fetchActiveAds();
+        return jsonResponse(data);
+      }
+      if (method === 'POST') {
+        const body = await parseRequestBody(request);
+        const data = await createAd(body);
+        return jsonResponse(data, 201);
+      }
+    } catch (error) {
+      console.error('Error en endpoint anuncios:', error);
+      return jsonResponse({ error: 'Error processing ads request' }, 500);
+    }
+  }
+  
+  // Manejar operaciones para anuncios específicos (/api/anuncios/1)
+  const anuncioPattern = /^\/api\/anuncios\/(\d+)$/;
+  const anuncioMatch = path.match(anuncioPattern);
+  
+  if (anuncioMatch) {
+    try {
+      const id = parseInt(anuncioMatch[1]);
+      
+      if (method === 'PUT') {
+        const body = await parseRequestBody(request);
+        const data = await updateAd(id, body);
+        return jsonResponse(data);
+      }
+      
+      if (method === 'DELETE') {
+        await deleteAd(id);
+        return jsonResponse({ success: true });
+      }
+    } catch (error) {
+      console.error('Error en operación de anuncio específico:', error);
+      return jsonResponse({ error: 'Error processing ad operation' }, 500);
+    }
+  }
+  
+  // Si no coincide con ninguna ruta de API
+  return jsonResponse({ error: 'Not found', path }, 404);
 };

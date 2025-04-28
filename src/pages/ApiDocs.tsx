@@ -3,6 +3,8 @@ import React from 'react';
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { AlertCircle } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 const ApiDocs = () => {
   const [baseUrl, setBaseUrl] = useState('');
@@ -22,6 +24,15 @@ const ApiDocs = () => {
       <h1 className="text-2xl font-pixel text-geeky-cyan mb-8">Documentación de la API</h1>
       
       <div className="bg-geeky-dark/80 p-6 rounded-lg border border-geeky-purple/30 space-y-8">
+        <Alert className="bg-geeky-cyan/10 border-geeky-cyan">
+          <AlertCircle className="h-4 w-4 text-geeky-cyan" />
+          <AlertTitle className="text-geeky-cyan">Acceso a API Pública</AlertTitle>
+          <AlertDescription>
+            Esta API está disponible públicamente y puede ser accedida directamente desde cualquier cliente HTTP como Postman, 
+            curl o un navegador web. No requiere autenticación para operaciones de lectura.
+          </AlertDescription>
+        </Alert>
+        
         <section>
           <h2 className="text-xl font-pixel text-geeky-purple mb-4">Base URL</h2>
           <div className="flex items-center gap-4 bg-black/30 p-4 rounded">
@@ -33,6 +44,9 @@ const ApiDocs = () => {
             >
               Copiar
             </Button>
+          </div>
+          <div className="mt-2 text-white/70 text-sm">
+            Esta URL base funciona desde cualquier cliente HTTP. No es necesario ejecutar localmente la aplicación.
           </div>
         </section>
 
@@ -47,6 +61,7 @@ const ApiDocs = () => {
               <h3 className="text-lg font-pixel text-geeky-cyan">GET /mensaje_bienvenida</h3>
               <p className="text-white/80">Obtiene el mensaje de bienvenida actual</p>
               <div className="bg-black/30 p-4 rounded">
+                <div className="mb-2 font-mono text-geeky-purple text-xs">curl {baseUrl}/api/mensaje_bienvenida</div>
                 <pre className="text-white text-sm">
 {`// Respuesta
 {
@@ -62,6 +77,9 @@ const ApiDocs = () => {
               <h3 className="text-lg font-pixel text-geeky-cyan">PUT /mensaje_bienvenida</h3>
               <p className="text-white/80">Actualiza el mensaje de bienvenida</p>
               <div className="bg-black/30 p-4 rounded">
+                <div className="mb-2 font-mono text-geeky-purple text-xs">
+                  curl -X PUT {baseUrl}/api/mensaje_bienvenida -H "Content-Type: application/json" -d '{"content": "Nuevo mensaje de bienvenida"}'
+                </div>
                 <pre className="text-white text-sm">
 {`// Body
 {
@@ -84,6 +102,7 @@ const ApiDocs = () => {
               <h3 className="text-lg font-pixel text-geeky-cyan">GET /anuncios/activos</h3>
               <p className="text-white/80">Obtiene la lista de anuncios activos</p>
               <div className="bg-black/30 p-4 rounded">
+                <div className="mb-2 font-mono text-geeky-purple text-xs">curl {baseUrl}/api/anuncios/activos</div>
                 <pre className="text-white text-sm">
 {`// Respuesta
 [
@@ -106,6 +125,9 @@ const ApiDocs = () => {
               <h3 className="text-lg font-pixel text-geeky-cyan">POST /anuncios</h3>
               <p className="text-white/80">Crea un nuevo anuncio</p>
               <div className="bg-black/30 p-4 rounded">
+                <div className="mb-2 font-mono text-geeky-purple text-xs">
+                  curl -X POST {baseUrl}/api/anuncios -H "Content-Type: application/json" -d '{"titulo":"Nuevo anuncio",...}'
+                </div>
                 <pre className="text-white text-sm">
 {`// Body
 {
@@ -125,6 +147,9 @@ const ApiDocs = () => {
               <h3 className="text-lg font-pixel text-geeky-cyan">PUT /anuncios/{'{id}'}</h3>
               <p className="text-white/80">Actualiza un anuncio existente</p>
               <div className="bg-black/30 p-4 rounded">
+                <div className="mb-2 font-mono text-geeky-purple text-xs">
+                  curl -X PUT {baseUrl}/api/anuncios/1 -H "Content-Type: application/json" -d '{"titulo":"Anuncio actualizado",...}'
+                </div>
                 <pre className="text-white text-sm">
 {`// Body
 {
@@ -140,6 +165,9 @@ const ApiDocs = () => {
               <h3 className="text-lg font-pixel text-geeky-cyan">DELETE /anuncios/{'{id}'}</h3>
               <p className="text-white/80">Elimina un anuncio</p>
               <div className="bg-black/30 p-4 rounded">
+                <div className="mb-2 font-mono text-geeky-purple text-xs">
+                  curl -X DELETE {baseUrl}/api/anuncios/1
+                </div>
                 <pre className="text-white text-sm">
 {`// Respuesta
 {
@@ -154,9 +182,16 @@ const ApiDocs = () => {
         <section className="space-y-4">
           <h2 className="text-xl font-pixel text-geeky-purple">Probar en Postman</h2>
           <p className="text-white/80">
-            Para probar esta API puedes usar Postman u otra herramienta similar. La API está disponible públicamente en:
+            Para probar esta API en Postman:
           </p>
-          <div className="flex items-center gap-4 bg-black/30 p-4 rounded">
+          <ol className="list-decimal pl-6 text-white/80 space-y-2">
+            <li>Abre Postman y crea una nueva colección llamada "GeekyBot API"</li>
+            <li>Configura la URL base como variable de colección: <code className="bg-black/30 px-2 py-1 rounded">{baseUrl}/api</code></li>
+            <li>Crea solicitudes para los diferentes endpoints usando la URL base</li>
+            <li>Para solicitudes POST y PUT, incluye el header <code className="bg-black/30 px-2 py-1 rounded">Content-Type: application/json</code></li>
+            <li>La API responderá con JSON sin importar desde dónde la llames</li>
+          </ol>
+          <div className="flex items-center gap-4 bg-black/30 p-4 rounded mt-4">
             <code className="font-mono text-white flex-1">{baseUrl}/api</code>
             <Button 
               variant="outline"
@@ -166,9 +201,6 @@ const ApiDocs = () => {
               Copiar
             </Button>
           </div>
-          <p className="text-white/80">
-            Recuerda incluir el header 'Content-Type: application/json' cuando envíes datos en el body de tus peticiones.
-          </p>
         </section>
       </div>
     </div>

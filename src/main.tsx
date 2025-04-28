@@ -1,12 +1,15 @@
 
-import { createRoot } from 'react-dom/client'
+import React from 'react'
+import ReactDOM from 'react-dom/client'
 import App from './App.tsx'
 import './index.css'
 import { setupAPIHandlers } from './businessLogic/api/apiHandlers.ts'
 
-// Setup API handlers if we're in a browser environment
-if (typeof window !== 'undefined') {
-  setupAPIHandlers();
-}
+// Configurar el interceptor de API
+setupAPIHandlers();
 
-createRoot(document.getElementById("root")!).render(<App />);
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>,
+)
