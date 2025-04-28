@@ -1,11 +1,12 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Bot, Cpu, Database, Rocket, Code, Gamepad, Lock } from 'lucide-react';
 import { toast } from 'sonner';
 import ChatMessage from './ChatMessage';
 import ChatInput from './ChatInput';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { getWelcomeMessage } from '@/api/supabase/welcomeMessage';
-import { getActiveAds } from '@/api/supabase/ads';
+import { getWelcomeMessage } from '@/businessLogic/services/welcomeMessageService';
+import { getActiveAds } from '@/businessLogic/services/adService';
 import AdBanner from './AdBanner';
 
 interface Message {
@@ -27,20 +28,24 @@ const ChatInterface = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
   const webhookUrl = "https://n8n.zonenter.blog/webhook/b09398a5-b7ea-4829-a5e9-88a069a00536";
-  const welcomeMessage = "¡Saludos, viajero del multiverso geek! Soy GeekyBot, tu guía definitivo en este vasto universo de cultura friki. Tienes 5 mensajes gratuitos para explorar este universo de conocimiento. Después de eso, necesitarás una suscripción para continuar nuestra aventura. ¿Sobre qué quieres hablar hoy? ¿Videojuegos? ¿Anime? ¿Cómics? ¿Películas de ciencia ficción?";
+  const defaultWelcomeMessage = "¡Saludos, viajero del multiverso geek! Soy GeekyBot, tu guía definitivo en este vasto universo de cultura friki. Tienes 5 mensajes gratuitos para explorar este universo de conocimiento. Después de eso, necesitarás una suscripción para continuar nuestra aventura. ¿Sobre qué quieres hablar hoy? ¿Videojuegos? ¿Anime? ¿Cómics? ¿Películas de ciencia ficción?";
 
   useEffect(() => {
     const loadInitialData = async () => {
       try {
+        // Cargar datos iniciales
         const [welcomeMessageData, adsData] = await Promise.all([
           getWelcomeMessage(),
           getActiveAds()
         ]);
         
+        console.log("Mensaje de bienvenida cargado:", welcomeMessageData);
+        
+        // Agregar el mensaje de bienvenida al chat
         setMessages([
           {
             id: '1',
-            content: welcomeMessageData.contenido,
+            content: welcomeMessageData.contenido || defaultWelcomeMessage,
             sender: 'bot',
             timestamp: new Date()
           }
@@ -49,10 +54,11 @@ const ChatInterface = () => {
         setActiveAds(adsData);
       } catch (error) {
         console.error('Error loading initial data:', error);
+        // Fallback al mensaje predeterminado si hay un error
         setMessages([
           {
             id: '1',
-            content: welcomeMessage,
+            content: defaultWelcomeMessage,
             sender: 'bot',
             timestamp: new Date()
           }
@@ -61,19 +67,17 @@ const ChatInterface = () => {
     };
     
     loadInitialData();
-  }, []);
-
-  useEffect(() => {
-    setTimeout(() => {
-      setMessages([
-        {
-          id: '1',
-          content: welcomeMessage,
-          sender: 'bot',
-          timestamp: new Date()
-        }
-      ]);
-    }, 1000);
+    
+    // Recuperar el contador de mensajes y estado premium del localStorage
+    const savedMessageCount = localStorage.getItem('geekybot_message_count');
+    if (savedMessageCount) {
+      setUserMessageCount(parseInt(savedMessageCount, 10));
+    }
+    
+    const savedPremiumStatus = localStorage.getItem('geekybot_premium');
+    if (savedPremiumStatus === 'true') {
+      setIsPremium(true);
+    }
   }, []);
 
   useEffect(() => {

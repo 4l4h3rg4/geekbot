@@ -1,11 +1,18 @@
 
+/**
+ * Servicio para gestionar los mensajes de bienvenida
+ * Este servicio se comunica con la API interna que a su vez se conecta con Supabase
+ */
+
 export const getWelcomeMessage = async () => {
   try {
     const response = await fetch('/api/mensaje_bienvenida');
     if (!response.ok) {
       throw new Error('Failed to fetch welcome message');
     }
-    return await response.json();
+    const data = await response.json();
+    console.log("Mensaje recibido de la API:", data);
+    return data;
   } catch (error) {
     console.error('Error in welcomeMessageService.getWelcomeMessage:', error);
     return { contenido: "¡Bienvenido a GeekyBot!" }; // Default fallback

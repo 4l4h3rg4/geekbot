@@ -1,7 +1,12 @@
 
 import { supabase } from '@/integrations/supabase/client';
 
+/**
+ * Obtiene el mensaje de bienvenida desde Supabase
+ * @returns Objeto con el contenido del mensaje de bienvenida
+ */
 export const fetchWelcomeMessage = async () => {
+  console.log("Repositorio: Obteniendo mensaje de bienvenida");
   const { data, error } = await supabase
     .from('mensaje_bienvenida')
     .select('*')
@@ -12,10 +17,18 @@ export const fetchWelcomeMessage = async () => {
     throw error;
   }
   
+  console.log("Repositorio: Mensaje de bienvenida obtenido:", data);
   return data;
 };
 
+/**
+ * Actualiza el mensaje de bienvenida en Supabase
+ * @param content Nuevo contenido del mensaje
+ * @returns Objeto con el mensaje actualizado
+ */
 export const updateWelcomeMessage = async (content: string) => {
+  console.log("Repositorio: Actualizando mensaje de bienvenida:", content);
+  
   const { data, error } = await supabase
     .from('mensaje_bienvenida')
     .update({ 
@@ -31,5 +44,6 @@ export const updateWelcomeMessage = async (content: string) => {
     throw error;
   }
   
+  console.log("Repositorio: Mensaje de bienvenida actualizado:", data);
   return data;
 };

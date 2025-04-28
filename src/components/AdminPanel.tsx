@@ -1,12 +1,12 @@
 
 import React, { useState, useEffect } from 'react';
-import { getWelcomeMessage, updateWelcomeMessage } from '@/api/supabase/welcomeMessage';
-import { getActiveAds, createAd, updateAd, uploadAdImage, type Ad } from '@/api/supabase/ads';
+import { getWelcomeMessage, updateWelcomeMessage } from '@/businessLogic/services/welcomeMessageService';
+import { getActiveAds } from '@/businessLogic/services/adService';
 import { toast } from 'sonner';
 
 const AdminPanel = () => {
   const [welcomeMessage, setWelcomeMessage] = useState('');
-  const [ads, setAds] = useState<Ad[]>([]);
+  const [ads, setAds] = useState([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {

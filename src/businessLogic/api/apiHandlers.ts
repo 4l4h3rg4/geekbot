@@ -28,25 +28,37 @@ export const setupAPIHandlers = () => {
       // Welcome message endpoints
       if (url.endsWith('/api/mensaje_bienvenida')) {
         if (init?.method === 'GET' || !init?.method) {
+          console.log("Obteniendo mensaje de bienvenida de Supabase");
           const data = await fetchWelcomeMessage();
+          console.log("Mensaje obtenido:", data);
           return mockResponse(data, 200, 100);
         } 
         else if (init?.method === 'PUT' || init?.method === 'POST') {
           const body = init.body ? JSON.parse(init.body as string) : {};
+          console.log("Actualizando mensaje de bienvenida:", body.content || body.contenido);
           const data = await updateWelcomeMessage(body.content || body.contenido);
+          console.log("Mensaje actualizado:", data);
           return mockResponse(data, 200, 100);
         }
       }
       
       // Ads endpoints
       if (url.endsWith('/api/anuncios/activos')) {
+        console.log("Obteniendo anuncios activos");
         const data = await fetchActiveAds();
+        console.log("Anuncios activos:", data);
         return mockResponse(data, 200, 100);
       }
       
       if (url.match(/\/api\/anuncios\/?$/)) {
+        if (init?.method === 'GET') {
+          console.log("Obteniendo todos los anuncios");
+          const data = await fetchActiveAds(); // Usamos fetchActiveAds por ahora, pero podríamos tener un fetchAllAds
+          return mockResponse(data, 200, 100);
+        }
         if (init?.method === 'POST') {
           const body = init.body ? JSON.parse(init.body as string) : {};
+          console.log("Creando nuevo anuncio:", body);
           const data = await createAd(body);
           return mockResponse(data, 201, 100);
         }
@@ -57,21 +69,23 @@ export const setupAPIHandlers = () => {
         
         if (init?.method === 'PUT') {
           const body = init.body ? JSON.parse(init.body as string) : {};
+          console.log(`Actualizando anuncio ${id}:`, body);
           const data = await updateAd(id, body);
           return mockResponse(data, 200, 100);
         }
         
         if (init?.method === 'DELETE') {
+          console.log(`Eliminando anuncio ${id}`);
           await deleteAd(id);
           return mockResponse({ success: true }, 200, 100);
         }
       }
       
-      // If endpoint not found
+      // Si endpoint no encontrado
       return mockResponse({ error: 'Not found' }, 404, 100);
     }
     
-    // For non-API requests, use the original fetch
+    // Para solicitudes que no son de API, usar el fetch original
     return originalFetch.apply(window, [input, init]);
   };
 };
