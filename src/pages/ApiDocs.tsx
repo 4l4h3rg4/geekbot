@@ -78,7 +78,7 @@ const ApiDocs = () => {
               <p className="text-white/80">Actualiza el mensaje de bienvenida</p>
               <div className="bg-black/30 p-4 rounded">
                 <div className="mb-2 font-mono text-geeky-purple text-xs">
-                  curl -X PUT {baseUrl}/api/mensaje_bienvenida -H "Content-Type: application/json" -d '{"content": "Nuevo mensaje de bienvenida"}'
+                  {`curl -X PUT ${baseUrl}/api/mensaje_bienvenida -H "Content-Type: application/json" -d '{"content": "Nuevo mensaje de bienvenida"}'`}
                 </div>
                 <pre className="text-white text-sm">
 {`// Body
@@ -126,7 +126,7 @@ const ApiDocs = () => {
               <p className="text-white/80">Crea un nuevo anuncio</p>
               <div className="bg-black/30 p-4 rounded">
                 <div className="mb-2 font-mono text-geeky-purple text-xs">
-                  curl -X POST {baseUrl}/api/anuncios -H "Content-Type: application/json" -d '{"titulo":"Nuevo anuncio",...}'
+                  {`curl -X POST ${baseUrl}/api/anuncios -H "Content-Type: application/json" -d '{"titulo":"Nuevo anuncio",...}'`}
                 </div>
                 <pre className="text-white text-sm">
 {`// Body
@@ -148,7 +148,7 @@ const ApiDocs = () => {
               <p className="text-white/80">Actualiza un anuncio existente</p>
               <div className="bg-black/30 p-4 rounded">
                 <div className="mb-2 font-mono text-geeky-purple text-xs">
-                  curl -X PUT {baseUrl}/api/anuncios/1 -H "Content-Type: application/json" -d '{"titulo":"Anuncio actualizado",...}'
+                  {`curl -X PUT ${baseUrl}/api/anuncios/1 -H "Content-Type: application/json" -d '{"titulo":"Anuncio actualizado",...}'`}
                 </div>
                 <pre className="text-white text-sm">
 {`// Body
