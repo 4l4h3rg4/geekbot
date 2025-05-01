@@ -4,6 +4,7 @@ import ChatMessage from './ChatMessage';
 import ChatInput from './ChatInput';
 import GeekyBotAvatar from './GeekyBotAvatar';
 import { supabase } from '@/lib/supabase';
+import { toast } from 'sonner';
 
 export type Message = {
   id: string;
@@ -24,7 +25,7 @@ const ChatInterface = () => {
   const fetchWelcomeMessage = async () => {
     try {
       setIsLoading(true);
-      // Use .eq() to get the active welcome message and ensure we're not getting cached data
+      // Asegurarse de obtener los datos más recientes con headers para evitar caché
       const { data, error } = await supabase
         .from('welcome_messages')
         .select('content')
@@ -44,7 +45,7 @@ const ChatInterface = () => {
       }
     } catch (error) {
       console.error('Error fetching welcome message:', error);
-      // Use default welcome message if there's an error
+      // Usar mensaje de bienvenida predeterminado si hay un error
       setMessages([
         {
           id: 'welcome',
@@ -52,6 +53,7 @@ const ChatInterface = () => {
           role: 'assistant'
         }
       ]);
+      toast.error('Error al cargar el mensaje de bienvenida');
     } finally {
       setIsLoading(false);
     }

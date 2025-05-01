@@ -9,13 +9,15 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     persistSession: true,
     autoRefreshToken: true,
   },
-  // Disable cache by default to ensure we always get fresh data
+  // Configurar para evitar caché y asegurar que siempre obtenemos datos frescos
   db: {
     schema: 'public',
   },
   global: {
     headers: {
-      'Cache-Control': 'no-store',
+      'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0',
     }
   }
 });

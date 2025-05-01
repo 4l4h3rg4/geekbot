@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Advertisement as AdvertisementType } from '@/types/admin';
 import { Card, CardContent } from '@/components/ui/card';
+import { toast } from 'sonner';
 
 const Advertisement = () => {
   const [ad, setAd] = useState<AdvertisementType | null>(null);
@@ -18,6 +19,7 @@ const Advertisement = () => {
       setLoading(true);
       setError(null);
       
+      // Asegurarse de obtener los datos más recientes
       const { data, error } = await supabase
         .from('advertisements')
         .select('*')
@@ -28,6 +30,7 @@ const Advertisement = () => {
       if (error) {
         console.error('Error fetching advertisements:', error);
         setError('Error loading advertisement');
+        toast.error('Error al cargar los anuncios');
         throw error;
       }
 

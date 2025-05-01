@@ -20,6 +20,7 @@ const WelcomeMessagePage = () => {
   const fetchWelcomeMessage = async () => {
     try {
       setLoading(true);
+      // Asegurarse de obtener los datos más recientes
       const { data, error } = await supabase
         .from('welcome_messages')
         .select('*')
@@ -57,8 +58,8 @@ const WelcomeMessagePage = () => {
 
       toast.success('Mensaje de bienvenida actualizado correctamente');
       
-      // After successful update, refresh the welcome message
-      fetchWelcomeMessage();
+      // Después de actualizar, volvemos a cargar para asegurarnos de tener datos actualizados
+      await fetchWelcomeMessage();
     } catch (error: any) {
       toast.error('Error al guardar el mensaje de bienvenida', {
         description: error.message

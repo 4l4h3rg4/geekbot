@@ -60,6 +60,9 @@ const SiteSettingsPage = () => {
       if (error) throw error;
 
       toast.success('Configuración guardada correctamente');
+      
+      // Volver a cargar los datos para asegurarse de que tenemos lo más reciente
+      await fetchSettings();
     } catch (error: any) {
       toast.error('Error al guardar la configuración', {
         description: error.message
