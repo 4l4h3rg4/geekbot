@@ -20,18 +20,23 @@ const WelcomeMessagePage = () => {
   const fetchWelcomeMessage = async () => {
     try {
       setLoading(true);
-      // Asegurarse de obtener los datos más recientes
+      
       const { data, error } = await supabase
         .from('welcome_messages')
         .select('*')
         .eq('active', true)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching welcome message:', error);
+        throw error;
+      }
 
+      console.log('Fetched welcome message:', data);
       setWelcomeMessage(data);
       setContent(data.content);
     } catch (error: any) {
+      console.error('Error loading welcome message:', error);
       toast.error('Error al cargar el mensaje de bienvenida', {
         description: error.message
       });
@@ -45,26 +50,32 @@ const WelcomeMessagePage = () => {
     
     try {
       setSaving(true);
+      console.log('Saving welcome message:', { id: welcomeMessage.id, content });
       
-      const { error } = await supabase
+      const { error, data } = await supabase
         .from('welcome_messages')
         .update({ 
           content,
           updated_at: new Date().toISOString()
         })
-        .eq('id', welcomeMessage.id);
+        .eq('id', welcomeMessage.id)
+        .select();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error updating welcome message:', error);
+        throw error;
+      }
 
+      console.log('Update response:', data);
       toast.success('Mensaje de bienvenida actualizado correctamente');
       
       // Después de actualizar, volvemos a cargar para asegurarnos de tener datos actualizados
       await fetchWelcomeMessage();
     } catch (error: any) {
+      console.error('Error updating welcome message:', error);
       toast.error('Error al guardar el mensaje de bienvenida', {
         description: error.message
       });
-      console.error('Error updating welcome message:', error);
     } finally {
       setSaving(false);
     }

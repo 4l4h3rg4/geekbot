@@ -25,14 +25,20 @@ const ChatInterface = () => {
   const fetchWelcomeMessage = async () => {
     try {
       setIsLoading(true);
-      // Asegurarse de obtener los datos más recientes con headers para evitar caché
+      console.log('Fetching welcome message...');
+      
       const { data, error } = await supabase
         .from('welcome_messages')
         .select('content')
         .eq('active', true)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching welcome message:', error);
+        throw error;
+      }
+      
+      console.log('Welcome message data:', data);
       
       if (data) {
         setMessages([
