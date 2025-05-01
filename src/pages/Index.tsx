@@ -3,16 +3,14 @@ import React from 'react';
 import { Toaster } from 'sonner';
 import ChatInterface from '@/components/ChatInterface';
 import PixelBackground from '@/components/PixelBackground';
-import Navigation from '@/components/Navigation';
 
 const Index = () => {
   return (
     <div className="min-h-screen flex flex-col">
       <PixelBackground />
-      <Navigation />
       
       {/* Header */}
-      <header className="py-6 mt-12 text-center relative z-10">
+      <header className="py-6 text-center relative z-10">
         <h1 className="text-3xl md:text-4xl font-pixel text-transparent bg-clip-text bg-gradient-to-r from-geeky-green via-geeky-cyan to-geeky-purple glow-text glitch" data-text="GeekyBot">
           GeekyBot
         </h1>
