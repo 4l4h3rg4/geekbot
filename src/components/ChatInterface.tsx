@@ -6,9 +6,9 @@ import GeekyBotAvatar from './GeekyBotAvatar';
 import { supabase } from '@/lib/supabase';
 
 export type Message = {
+  id: string;
   content: string;
   role: 'user' | 'assistant';
-  id: string;
 };
 
 const ChatInterface = () => {
@@ -114,7 +114,12 @@ const ChatInterface = () => {
         {messages.map((message) => (
           <ChatMessage
             key={message.id}
-            message={message.content}
+            message={{
+              id: message.id,
+              content: message.content,
+              sender: message.role === 'user' ? 'user' : 'bot',
+              timestamp: new Date()
+            }}
             isBot={message.role === 'assistant'}
           />
         ))}

@@ -10,12 +10,12 @@ interface ChatMessageProps {
     sender: 'user' | 'bot';
     timestamp: Date;
   };
+  isBot: boolean;
 }
 
-const ChatMessage = ({ message }: ChatMessageProps) => {
-  const [isTyping, setIsTyping] = useState(message.sender === 'bot');
+const ChatMessage = ({ message, isBot }: ChatMessageProps) => {
+  const [isTyping, setIsTyping] = useState(isBot);
   const [displayedContent, setDisplayedContent] = useState('');
-  const isBot = message.sender === 'bot';
   
   // Function to convert markdown-style links to HTML links
   const formatContent = (content: string) => {
