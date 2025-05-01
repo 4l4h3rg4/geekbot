@@ -7,6 +7,7 @@ import { Card, CardContent } from '@/components/ui/card';
 const Advertisement = () => {
   const [ad, setAd] = useState<AdvertisementType | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchRandomAdvertisement();
@@ -15,6 +16,7 @@ const Advertisement = () => {
   const fetchRandomAdvertisement = async () => {
     try {
       setLoading(true);
+      setError(null);
       
       const { data, error } = await supabase
         .from('advertisements')
@@ -23,21 +25,33 @@ const Advertisement = () => {
         .order('created_at', { ascending: false })
         .limit(5);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching advertisements:', error);
+        setError('Error loading advertisement');
+        throw error;
+      }
 
       if (data && data.length > 0) {
         // Select a random ad from the results
         const randomIndex = Math.floor(Math.random() * data.length);
         setAd(data[randomIndex]);
       }
-    } catch (error) {
-      console.error('Error fetching advertisements:', error);
+    } catch (err) {
+      console.error('Error processing advertisements:', err);
     } finally {
       setLoading(false);
     }
   };
 
-  if (loading || !ad) return null;
+  if (loading) {
+    return (
+      <Card className="bg-geeky-dark/50 border-geeky-purple/30 mb-4 overflow-hidden animate-pulse">
+        <CardContent className="h-20 p-3"></CardContent>
+      </Card>
+    );
+  }
+  
+  if (error || !ad) return null;
 
   return (
     <Card className="bg-geeky-dark/50 border-geeky-purple/30 mb-4 overflow-hidden hover:border-geeky-purple/50 transition-all">
