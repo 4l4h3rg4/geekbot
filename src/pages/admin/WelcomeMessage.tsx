@@ -56,10 +56,14 @@ const WelcomeMessagePage = () => {
       if (error) throw error;
 
       toast.success('Mensaje de bienvenida actualizado correctamente');
+      
+      // After successful update, refresh the welcome message
+      fetchWelcomeMessage();
     } catch (error: any) {
       toast.error('Error al guardar el mensaje de bienvenida', {
         description: error.message
       });
+      console.error('Error updating welcome message:', error);
     } finally {
       setSaving(false);
     }

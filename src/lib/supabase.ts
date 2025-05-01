@@ -8,6 +8,15 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     persistSession: true,
     autoRefreshToken: true,
+  },
+  // Disable cache by default to ensure we always get fresh data
+  db: {
+    schema: 'public',
+  },
+  global: {
+    headers: {
+      'Cache-Control': 'no-store',
+    }
   }
 });
 

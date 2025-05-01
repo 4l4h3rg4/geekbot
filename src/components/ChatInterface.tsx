@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import ChatMessage from './ChatMessage';
 import ChatInput from './ChatInput';
@@ -14,6 +13,7 @@ export type Message = {
 const ChatInterface = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isTyping, setIsTyping] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -22,11 +22,14 @@ const ChatInterface = () => {
 
   const fetchWelcomeMessage = async () => {
     try {
+      setIsLoading(true);
+      // Use .eq() to get the active welcome message and ensure we're not getting cached data
       const { data, error } = await supabase
         .from('welcome_messages')
         .select('content')
         .eq('active', true)
-        .single();
+        .single()
+        .limit(1);
 
       if (error) throw error;
       
@@ -49,6 +52,8 @@ const ChatInterface = () => {
           role: 'assistant'
         }
       ]);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -111,18 +116,24 @@ const ChatInterface = () => {
     <div className="flex flex-col h-full">
       {/* Chat messages */}
       <div className="flex-1 overflow-y-auto p-4">
-        {messages.map((message) => (
-          <ChatMessage
-            key={message.id}
-            message={{
-              id: message.id,
-              content: message.content,
-              sender: message.role === 'user' ? 'user' : 'bot',
-              timestamp: new Date()
-            }}
-            isBot={message.role === 'assistant'}
-          />
-        ))}
+        {isLoading ? (
+          <div className="flex items-center justify-center h-20">
+            <div className="animate-pulse text-geeky-cyan">Cargando...</div>
+          </div>
+        ) : (
+          messages.map((message) => (
+            <ChatMessage
+              key={message.id}
+              message={{
+                id: message.id,
+                content: message.content,
+                sender: message.role === 'user' ? 'user' : 'bot',
+                timestamp: new Date()
+              }}
+              isBot={message.role === 'assistant'}
+            />
+          ))
+        )}
         
         {isTyping && (
           <div className="flex items-center space-x-3 opacity-70 my-2">
