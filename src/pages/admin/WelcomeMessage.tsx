@@ -53,29 +53,10 @@ const WelcomeMessagePage = () => {
       setSaving(true);
       console.log('Saving welcome message:', { id: welcomeMessage.id, content });
       
-      // First check if the message exists
-      const { data: checkData, error: checkError } = await supabase
-        .from('welcome_messages')
-        .select('id')
-        .eq('id', welcomeMessage.id)
-        .single();
-        
-      if (checkError) {
-        console.error('Error checking welcome message:', checkError);
-        throw new Error('No se pudo verificar el mensaje de bienvenida');
-      }
-      
-      if (!checkData) {
-        throw new Error('No se encontró el mensaje de bienvenida para actualizar');
-      }
-      
-      // Now update the message
+      // Now update the message - this is a simpler approach
       const { data, error } = await supabase
         .from('welcome_messages')
-        .update({ 
-          content: content,
-          updated_at: new Date().toISOString()
-        })
+        .update({ content: content })
         .eq('id', welcomeMessage.id)
         .select();
 
@@ -85,11 +66,6 @@ const WelcomeMessagePage = () => {
       }
 
       console.log('Update response:', data);
-      
-      if (!data || data.length === 0) {
-        throw new Error('No se pudo actualizar el mensaje de bienvenida');
-      }
-      
       toast.success('Mensaje de bienvenida actualizado correctamente');
       
       // Refresh data

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import ChatMessage from './ChatMessage';
 import ChatInput from './ChatInput';
@@ -27,9 +26,7 @@ const ChatInterface = () => {
       setIsLoading(true);
       console.log('Fetching welcome message...');
       
-      // Use a timestamp to force cache busting
-      const timestamp = new Date().getTime();
-      
+      // Force no caching
       const { data, error } = await supabase
         .from('welcome_messages')
         .select('content')

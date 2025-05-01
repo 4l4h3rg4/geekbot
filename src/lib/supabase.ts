@@ -9,10 +9,6 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     persistSession: true,
     autoRefreshToken: true,
   },
-  // Configurar para evitar caché y asegurar que siempre obtenemos datos frescos
-  db: {
-    schema: 'public',
-  },
   global: {
     headers: {
       'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
