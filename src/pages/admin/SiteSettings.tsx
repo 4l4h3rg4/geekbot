@@ -7,14 +7,23 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Save, Loader2 } from 'lucide-react';
+import { useForm } from 'react-hook-form';
+import { Form, FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
 
 const SiteSettingsPage = () => {
   const [settings, setSettings] = useState<SiteSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   
-  const [siteName, setSiteName] = useState('');
-  const [siteSubtitle, setSiteSubtitle] = useState('');
+  const form = useForm<{
+    siteName: string;
+    siteSubtitle: string;
+  }>({
+    defaultValues: {
+      siteName: '',
+      siteSubtitle: '',
+    },
+  });
 
   useEffect(() => {
     fetchSettings();
@@ -37,8 +46,11 @@ const SiteSettingsPage = () => {
 
       console.log('Fetched site settings:', data);
       setSettings(data);
-      setSiteName(data.site_name);
-      setSiteSubtitle(data.site_subtitle);
+      
+      form.reset({
+        siteName: data.site_name,
+        siteSubtitle: data.site_subtitle,
+      });
     } catch (error: any) {
       console.error('Error loading site settings:', error);
       toast.error('Error al cargar la configuración', {
@@ -49,18 +61,25 @@ const SiteSettingsPage = () => {
     }
   };
 
-  const handleSave = async () => {
+  const handleSave = async (values: { siteName: string; siteSubtitle: string }) => {
     if (!settings) return;
     
     try {
       setSaving(true);
-      console.log('Saving site settings:', { id: settings.id, siteName, siteSubtitle });
+      console.log('Saving site settings:', { id: settings.id, ...values });
+      
+      // Make sure we're not sending empty values
+      if (!values.siteName) {
+        toast.error('El nombre del sitio no puede estar vacío');
+        setSaving(false);
+        return;
+      }
       
       const { data, error } = await supabase
         .from('site_settings')
         .update({ 
-          site_name: siteName,
-          site_subtitle: siteSubtitle,
+          site_name: values.siteName,
+          site_subtitle: values.siteSubtitle,
           updated_at: new Date().toISOString()
         })
         .eq('id', settings.id)
@@ -77,10 +96,9 @@ const SiteSettingsPage = () => {
         throw new Error('No se pudo actualizar la configuración');
       }
       
+      setSettings(data[0]);
       toast.success('Configuración guardada correctamente');
       
-      // Refresh data
-      await fetchSettings();
     } catch (error: any) {
       console.error('Error saving site settings:', error);
       toast.error('Error al guardar la configuración', {
@@ -111,53 +129,69 @@ const SiteSettingsPage = () => {
           <CardTitle className="text-geeky-cyan">Información General</CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="space-y-2">
-            <label htmlFor="site-name" className="block text-sm font-medium text-geeky-purple">
-              Nombre del Sitio
-            </label>
-            <Input
-              id="site-name"
-              value={siteName}
-              onChange={(e) => setSiteName(e.target.value)}
-              className="bg-geeky-dark border-geeky-purple/50 text-white focus-visible:ring-geeky-cyan"
-            />
-            <p className="text-xs text-geeky-purple/70">
-              Este nombre aparece en el encabezado principal de la aplicación.
-            </p>
-          </div>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(handleSave)} className="space-y-6">
+              <FormField
+                control={form.control}
+                name="siteName"
+                render={({ field }) => (
+                  <FormItem className="space-y-2">
+                    <FormLabel className="text-sm font-medium text-geeky-purple">
+                      Nombre del Sitio
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        className="bg-geeky-dark border-geeky-purple/50 text-white focus-visible:ring-geeky-cyan"
+                      />
+                    </FormControl>
+                    <p className="text-xs text-geeky-purple/70">
+                      Este nombre aparece en el encabezado principal de la aplicación.
+                    </p>
+                  </FormItem>
+                )}
+              />
 
-          <div className="space-y-2">
-            <label htmlFor="site-subtitle" className="block text-sm font-medium text-geeky-purple">
-              Subtítulo
-            </label>
-            <Input
-              id="site-subtitle"
-              value={siteSubtitle}
-              onChange={(e) => setSiteSubtitle(e.target.value)}
-              className="bg-geeky-dark border-geeky-purple/50 text-white focus-visible:ring-geeky-cyan"
-            />
-            <p className="text-xs text-geeky-purple/70">
-              Una breve descripción que aparece debajo del nombre del sitio.
-            </p>
-          </div>
+              <FormField
+                control={form.control}
+                name="siteSubtitle"
+                render={({ field }) => (
+                  <FormItem className="space-y-2">
+                    <FormLabel className="text-sm font-medium text-geeky-purple">
+                      Subtítulo
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        className="bg-geeky-dark border-geeky-purple/50 text-white focus-visible:ring-geeky-cyan"
+                      />
+                    </FormControl>
+                    <p className="text-xs text-geeky-purple/70">
+                      Una breve descripción que aparece debajo del nombre del sitio.
+                    </p>
+                  </FormItem>
+                )}
+              />
 
-          <Button 
-            onClick={handleSave} 
-            disabled={saving}
-            className="bg-geeky-purple hover:bg-geeky-purple/80"
-          >
-            {saving ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Guardando...
-              </>
-            ) : (
-              <>
-                <Save className="w-4 h-4 mr-2" />
-                Guardar Cambios
-              </>
-            )}
-          </Button>
+              <Button 
+                type="submit"
+                disabled={saving}
+                className="bg-geeky-purple hover:bg-geeky-purple/80"
+              >
+                {saving ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Guardando...
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4 mr-2" />
+                    Guardar Cambios
+                  </>
+                )}
+              </Button>
+            </form>
+          </Form>
         </CardContent>
       </Card>
     </div>
