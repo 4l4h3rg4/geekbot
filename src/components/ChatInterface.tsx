@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import ChatMessage from './ChatMessage';
 import ChatInput from './ChatInput';
@@ -28,8 +29,7 @@ const ChatInterface = () => {
         .from('welcome_messages')
         .select('content')
         .eq('active', true)
-        .single()
-        .limit(1);
+        .single();
 
       if (error) throw error;
       
