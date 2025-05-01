@@ -16,6 +16,9 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
       'Expires': '0',
     },
   },
+  db: {
+    schema: 'public',
+  },
 });
 
 // Export a helper function to check if we have a session

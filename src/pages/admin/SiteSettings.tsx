@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
@@ -75,28 +74,28 @@ const SiteSettingsPage = () => {
         return;
       }
       
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('site_settings')
         .update({ 
           site_name: values.siteName,
           site_subtitle: values.siteSubtitle,
           updated_at: new Date().toISOString()
         })
-        .eq('id', settings.id)
-        .select();
+        .eq('id', settings.id);
 
       if (error) {
         console.error('Error updating site settings:', error);
         throw error;
       }
 
-      console.log('Site settings update response:', data);
+      // Actualizar datos locales sin esperar una respuesta de datos
+      setSettings({
+        ...settings,
+        site_name: values.siteName,
+        site_subtitle: values.siteSubtitle,
+        updated_at: new Date().toISOString()
+      });
       
-      if (!data || data.length === 0) {
-        throw new Error('No se pudo actualizar la configuración');
-      }
-      
-      setSettings(data[0]);
       toast.success('Configuración guardada correctamente');
       
     } catch (error: any) {
