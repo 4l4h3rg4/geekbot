@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import ChatMessage from './ChatMessage';
 import ChatInput from './ChatInput';
@@ -26,12 +27,11 @@ const ChatInterface = () => {
       setIsLoading(true);
       console.log('Fetching welcome message...');
       
-      // Force no caching
       const { data, error } = await supabase
         .from('welcome_messages')
         .select('content')
         .eq('active', true)
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error('Error fetching welcome message:', error);
@@ -45,6 +45,15 @@ const ChatInterface = () => {
           {
             id: 'welcome',
             content: data.content,
+            role: 'assistant'
+          }
+        ]);
+      } else {
+        // Fallback welcome message
+        setMessages([
+          {
+            id: 'welcome',
+            content: '¡Saludos, viajero del multiverso geek! Soy GeekyBot, tu guía definitivo en este vasto universo de cultura friki. ¿Sobre qué quieres hablar hoy?',
             role: 'assistant'
           }
         ]);

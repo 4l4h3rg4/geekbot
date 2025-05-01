@@ -6,7 +6,7 @@ import { SiteSettings } from '@/types/admin';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Save } from 'lucide-react';
+import { Save, Loader2 } from 'lucide-react';
 
 const SiteSettingsPage = () => {
   const [settings, setSettings] = useState<SiteSettings | null>(null);
@@ -23,17 +23,24 @@ const SiteSettingsPage = () => {
   const fetchSettings = async () => {
     try {
       setLoading(true);
+      console.log('Fetching site settings...');
+      
       const { data, error } = await supabase
         .from('site_settings')
         .select('*')
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching site settings:', error);
+        throw error;
+      }
 
+      console.log('Fetched site settings:', data);
       setSettings(data);
       setSiteName(data.site_name);
       setSiteSubtitle(data.site_subtitle);
     } catch (error: any) {
+      console.error('Error loading site settings:', error);
       toast.error('Error al cargar la configuración', {
         description: error.message
       });
@@ -47,23 +54,35 @@ const SiteSettingsPage = () => {
     
     try {
       setSaving(true);
+      console.log('Saving site settings:', { id: settings.id, siteName, siteSubtitle });
       
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('site_settings')
         .update({ 
           site_name: siteName,
           site_subtitle: siteSubtitle,
           updated_at: new Date().toISOString()
         })
-        .eq('id', settings.id);
+        .eq('id', settings.id)
+        .select();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error updating site settings:', error);
+        throw error;
+      }
 
+      console.log('Site settings update response:', data);
+      
+      if (!data || data.length === 0) {
+        throw new Error('No se pudo actualizar la configuración');
+      }
+      
       toast.success('Configuración guardada correctamente');
       
-      // Volver a cargar los datos para asegurarse de que tenemos lo más reciente
+      // Refresh data
       await fetchSettings();
     } catch (error: any) {
+      console.error('Error saving site settings:', error);
       toast.error('Error al guardar la configuración', {
         description: error.message
       });
@@ -73,7 +92,12 @@ const SiteSettingsPage = () => {
   };
 
   if (loading) {
-    return <div className="text-center py-10">Cargando configuración...</div>;
+    return (
+      <div className="flex items-center justify-center py-10">
+        <Loader2 className="h-8 w-8 animate-spin text-geeky-purple" />
+        <span className="ml-3 text-geeky-purple">Cargando configuración...</span>
+      </div>
+    );
   }
 
   return (
@@ -123,7 +147,10 @@ const SiteSettingsPage = () => {
             className="bg-geeky-purple hover:bg-geeky-purple/80"
           >
             {saving ? (
-              <>Guardando...</>
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Guardando...
+              </>
             ) : (
               <>
                 <Save className="w-4 h-4 mr-2" />

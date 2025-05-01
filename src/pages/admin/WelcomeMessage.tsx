@@ -21,12 +21,13 @@ const WelcomeMessagePage = () => {
   const fetchWelcomeMessage = async () => {
     try {
       setLoading(true);
+      console.log('Fetching welcome message...');
       
       const { data, error } = await supabase
         .from('welcome_messages')
         .select('*')
         .eq('active', true)
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error('Error fetching welcome message:', error);
@@ -34,8 +35,30 @@ const WelcomeMessagePage = () => {
       }
 
       console.log('Fetched welcome message:', data);
-      setWelcomeMessage(data);
-      setContent(data.content);
+      
+      if (!data) {
+        console.log('No active welcome message found, creating one...');
+        // If no active message, create a default one
+        const { data: newMessage, error: createError } = await supabase
+          .from('welcome_messages')
+          .insert({
+            content: '¡Saludos, viajero del multiverso geek! Soy GeekyBot, tu guía definitivo en este vasto universo de cultura friki.',
+            active: true
+          })
+          .select()
+          .single();
+          
+        if (createError) {
+          console.error('Error creating welcome message:', createError);
+          throw createError;
+        }
+        
+        setWelcomeMessage(newMessage);
+        setContent(newMessage.content);
+      } else {
+        setWelcomeMessage(data);
+        setContent(data.content);
+      }
     } catch (error: any) {
       console.error('Error loading welcome message:', error);
       toast.error('Error al cargar el mensaje de bienvenida', {
@@ -53,23 +76,36 @@ const WelcomeMessagePage = () => {
       setSaving(true);
       console.log('Saving welcome message:', { id: welcomeMessage.id, content });
       
-      // Now update the message - this is a simpler approach
       const { data, error } = await supabase
         .from('welcome_messages')
-        .update({ content: content })
+        .update({ 
+          content,
+          updated_at: new Date().toISOString()
+        })
         .eq('id', welcomeMessage.id)
         .select();
 
       if (error) {
         console.error('Error updating welcome message:', error);
-        throw error;
+        toast.error('Error al guardar el mensaje de bienvenida', {
+          description: error.message
+        });
+        return;
       }
 
       console.log('Update response:', data);
+      
+      if (!data || data.length === 0) {
+        toast.error('No se pudo actualizar el mensaje de bienvenida');
+        return;
+      }
+      
       toast.success('Mensaje de bienvenida actualizado correctamente');
       
-      // Refresh data
-      await fetchWelcomeMessage();
+      // Update the local state with the updated data
+      setWelcomeMessage(data[0]);
+      setContent(data[0].content);
+      
     } catch (error: any) {
       console.error('Error updating welcome message:', error);
       toast.error('Error al guardar el mensaje de bienvenida', {
