@@ -6,16 +6,31 @@ import PixelBackground from '@/components/PixelBackground';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { SiteSettings } from '@/types/admin';
-import { Settings } from 'lucide-react';
+import { Settings, UserCircle } from 'lucide-react';
 import Advertisement from '@/components/Advertisement';
+import { isAuthenticated } from '@/lib/supabase';
 
 const Index = () => {
   const [settings, setSettings] = useState<SiteSettings | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
     fetchSiteSettings();
+    checkAuth();
+
+    // Suscribirse a cambios en la autenticación
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
+      checkAuth();
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
+
+  const checkAuth = async () => {
+    const authenticated = await isAuthenticated();
+    setIsLoggedIn(authenticated);
+  };
 
   const fetchSiteSettings = async () => {
     try {
@@ -61,11 +76,18 @@ const Index = () => {
         {/* Admin Link */}
         <div className="absolute right-8 top-0 z-20">
           <Link 
-            to="/admin" 
-            className="text-geeky-purple/60 hover:text-geeky-purple transition-colors" 
-            title="Admin Panel"
+            to={isLoggedIn ? "/admin" : "/auth"} 
+            className="text-geeky-purple/60 hover:text-geeky-purple transition-colors flex items-center gap-1" 
+            title={isLoggedIn ? "Panel de Admin" : "Iniciar Sesión"}
           >
-            <Settings className="w-5 h-5" />
+            {isLoggedIn ? (
+              <Settings className="w-5 h-5" />
+            ) : (
+              <>
+                <UserCircle className="w-5 h-5" />
+                <span className="text-xs">Admin</span>
+              </>
+            )}
           </Link>
         </div>
         
