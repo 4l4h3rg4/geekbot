@@ -27,6 +27,9 @@ const ChatInterface = () => {
       setIsLoading(true);
       console.log('Fetching welcome message...');
       
+      // Use a timestamp to force cache busting
+      const timestamp = new Date().getTime();
+      
       const { data, error } = await supabase
         .from('welcome_messages')
         .select('content')

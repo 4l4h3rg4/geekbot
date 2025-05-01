@@ -5,7 +5,8 @@ import { supabase } from '@/lib/supabase';
 import { WelcomeMessage } from '@/types/admin';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Save } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
+import { Save, Loader2 } from 'lucide-react';
 
 const WelcomeMessagePage = () => {
   const [welcomeMessage, setWelcomeMessage] = useState<WelcomeMessage | null>(null);
@@ -52,10 +53,27 @@ const WelcomeMessagePage = () => {
       setSaving(true);
       console.log('Saving welcome message:', { id: welcomeMessage.id, content });
       
-      const { error, data } = await supabase
+      // First check if the message exists
+      const { data: checkData, error: checkError } = await supabase
+        .from('welcome_messages')
+        .select('id')
+        .eq('id', welcomeMessage.id)
+        .single();
+        
+      if (checkError) {
+        console.error('Error checking welcome message:', checkError);
+        throw new Error('No se pudo verificar el mensaje de bienvenida');
+      }
+      
+      if (!checkData) {
+        throw new Error('No se encontró el mensaje de bienvenida para actualizar');
+      }
+      
+      // Now update the message
+      const { data, error } = await supabase
         .from('welcome_messages')
         .update({ 
-          content,
+          content: content,
           updated_at: new Date().toISOString()
         })
         .eq('id', welcomeMessage.id)
@@ -67,9 +85,14 @@ const WelcomeMessagePage = () => {
       }
 
       console.log('Update response:', data);
+      
+      if (!data || data.length === 0) {
+        throw new Error('No se pudo actualizar el mensaje de bienvenida');
+      }
+      
       toast.success('Mensaje de bienvenida actualizado correctamente');
       
-      // Después de actualizar, volvemos a cargar para asegurarnos de tener datos actualizados
+      // Refresh data
       await fetchWelcomeMessage();
     } catch (error: any) {
       console.error('Error updating welcome message:', error);
@@ -82,7 +105,12 @@ const WelcomeMessagePage = () => {
   };
 
   if (loading) {
-    return <div className="text-center py-10">Cargando mensaje de bienvenida...</div>;
+    return (
+      <div className="flex items-center justify-center py-10">
+        <Loader2 className="h-8 w-8 animate-spin text-geeky-purple" />
+        <span className="ml-3 text-geeky-purple">Cargando mensaje de bienvenida...</span>
+      </div>
+    );
   }
 
   return (
@@ -100,7 +128,7 @@ const WelcomeMessagePage = () => {
             <label htmlFor="welcome-message" className="block text-sm font-medium text-geeky-purple">
               Mensaje de Bienvenida
             </label>
-            <textarea
+            <Textarea
               id="welcome-message"
               value={content}
               onChange={(e) => setContent(e.target.value)}
@@ -118,7 +146,10 @@ const WelcomeMessagePage = () => {
             className="bg-geeky-purple hover:bg-geeky-purple/80"
           >
             {saving ? (
-              <>Guardando...</>
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Guardando...
+              </>
             ) : (
               <>
                 <Save className="w-4 h-4 mr-2" />
