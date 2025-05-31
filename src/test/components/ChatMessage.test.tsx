@@ -1,10 +1,7 @@
 
-import { render } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import { describe, it, expect } from 'vitest'
 import ChatMessage from '@/components/ChatMessage'
-
-// Import screen from @testing-library/dom as it's re-exported
-import { screen } from '@testing-library/dom'
 
 describe('ChatMessage', () => {
   it('renders user message correctly', () => {

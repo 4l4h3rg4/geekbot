@@ -1,12 +1,9 @@
 
-import { render } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { BrowserRouter } from 'react-router-dom'
 import AuthForm from '@/components/auth/AuthForm'
-
-// Import screen from @testing-library/dom as it's re-exported
-import { screen } from '@testing-library/dom'
 
 // Mock react-router-dom
 const mockNavigate = vi.fn()
