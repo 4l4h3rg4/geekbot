@@ -1,8 +1,11 @@
 
-import { render, screen } from '@testing-library/react'
+import { render } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, it, expect, vi } from 'vitest'
 import ChatInput from '@/components/ChatInput'
+
+// Import screen from @testing-library/dom as it's re-exported
+import { screen } from '@testing-library/dom'
 
 describe('ChatInput', () => {
   it('renders input field and send button', () => {
