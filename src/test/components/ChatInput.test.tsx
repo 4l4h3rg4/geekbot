@@ -1,5 +1,5 @@
 
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, it, expect, vi } from 'vitest'
 import ChatInput from '@/components/ChatInput'
@@ -9,8 +9,8 @@ describe('ChatInput', () => {
     const mockOnSend = vi.fn()
     render(<ChatInput onSendMessage={mockOnSend} />)
     
-    expect(screen.getByPlaceholderText(/escribe tu mensaje/i)).toBeInTheDocument()
-    expect(screen.getByRole('button')).toBeInTheDocument()
+    expect(screen.getByPlaceholderText(/Type your message/i)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '' })).toBeInTheDocument()
   })
 
   it('calls onSendMessage when form is submitted', async () => {
@@ -18,11 +18,13 @@ describe('ChatInput', () => {
     const mockOnSend = vi.fn()
     render(<ChatInput onSendMessage={mockOnSend} />)
     
-    const input = screen.getByPlaceholderText(/escribe tu mensaje/i)
+    const input = screen.getByPlaceholderText(/Type your message/i)
     await user.type(input, 'Test message')
     
-    const button = screen.getByRole('button')
-    await user.click(button)
+    const form = input.closest('form')
+    if (form) {
+      await user.click(screen.getByRole('button', { name: '' }))
+    }
     
     expect(mockOnSend).toHaveBeenCalledWith('Test message')
   })
@@ -32,11 +34,11 @@ describe('ChatInput', () => {
     const mockOnSend = vi.fn()
     render(<ChatInput onSendMessage={mockOnSend} />)
     
-    const input = screen.getByPlaceholderText(/escribe tu mensaje/i) as HTMLInputElement
+    const input = screen.getByPlaceholderText(/Type your message/i) as HTMLInputElement
     await user.type(input, 'Test message')
     
-    const button = screen.getByRole('button')
-    await user.click(button)
+    const submitButton = screen.getByRole('button', { name: '' })
+    await user.click(submitButton)
     
     expect(input.value).toBe('')
   })
@@ -46,9 +48,25 @@ describe('ChatInput', () => {
     const mockOnSend = vi.fn()
     render(<ChatInput onSendMessage={mockOnSend} />)
     
-    const button = screen.getByRole('button')
-    await user.click(button)
+    const submitButton = screen.getByRole('button', { name: '' })
+    await user.click(submitButton)
     
     expect(mockOnSend).not.toHaveBeenCalled()
+  })
+
+  it('shows disabled state when loading', () => {
+    const mockOnSend = vi.fn()
+    render(<ChatInput onSendMessage={mockOnSend} isLoading={true} />)
+    
+    const input = screen.getByPlaceholderText(/Espera a que GeekyBot/i)
+    expect(input).toBeDisabled()
+  })
+
+  it('shows disabled state when disabled prop is true', () => {
+    const mockOnSend = vi.fn()
+    render(<ChatInput onSendMessage={mockOnSend} disabled={true} />)
+    
+    const input = screen.getByPlaceholderText(/Activa GeekyBot Plus/i)
+    expect(input).toBeDisabled()
   })
 })

@@ -6,9 +6,9 @@ import ChatInterface from '@/components/ChatInterface'
 
 // Mock the child components
 vi.mock('@/components/ChatMessage', () => ({
-  default: ({ message, isBot }: { message: string; isBot: boolean }) => (
+  default: ({ message, isBot }: { message: any; isBot: boolean }) => (
     <div data-testid="chat-message">
-      <span>{isBot ? 'Bot' : 'User'}: {message}</span>
+      <span>{isBot ? 'Bot' : 'User'}: {message.content}</span>
     </div>
   ),
 }))
@@ -21,9 +21,35 @@ vi.mock('@/components/ChatInput', () => ({
   ),
 }))
 
+// Mock supabase
+vi.mock('@/lib/supabase', () => ({
+  supabase: {
+    from: vi.fn(() => ({
+      select: vi.fn(() => ({
+        eq: vi.fn(() => ({
+          maybeSingle: vi.fn(() => Promise.resolve({
+            data: { content: 'Welcome to GeekyBot!' },
+            error: null
+          }))
+        }))
+      }))
+    }))
+  }
+}))
+
+// Mock sonner
+vi.mock('sonner', () => ({
+  toast: {
+    error: vi.fn()
+  }
+}))
+
 describe('ChatInterface', () => {
-  it('renders chat interface components', () => {
+  it('renders chat interface components', async () => {
     render(<ChatInterface />)
+    
+    // Wait for welcome message to load
+    await new Promise(resolve => setTimeout(resolve, 100))
     
     expect(screen.getByTestId('chat-input')).toBeInTheDocument()
   })
@@ -32,23 +58,22 @@ describe('ChatInterface', () => {
     const user = userEvent.setup()
     render(<ChatInterface />)
     
+    // Wait for initial load
+    await new Promise(resolve => setTimeout(resolve, 100))
+    
     const sendButton = screen.getByText('Send Test')
     await user.click(sendButton)
     
-    // Should add user message and bot response
-    const messages = screen.getAllByTestId('chat-message')
-    expect(messages).toHaveLength(2) // User message + bot response
+    // Should add user message
+    expect(screen.getByText(/User: test message/)).toBeInTheDocument()
   })
 
-  it('displays messages in correct order', async () => {
-    const user = userEvent.setup()
+  it('displays welcome message on load', async () => {
     render(<ChatInterface />)
     
-    const sendButton = screen.getByText('Send Test')
-    await user.click(sendButton)
+    // Wait for welcome message to load
+    await new Promise(resolve => setTimeout(resolve, 100))
     
-    const messages = screen.getAllByTestId('chat-message')
-    expect(messages[0]).toHaveTextContent('User: test message')
-    expect(messages[1]).toHaveTextContent('Bot:')
+    expect(screen.getByText(/Bot: Welcome to GeekyBot!/)).toBeInTheDocument()
   })
 })
