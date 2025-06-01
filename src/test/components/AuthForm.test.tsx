@@ -47,7 +47,9 @@ describe('AuthForm', () => {
     renderWithRouter(<AuthForm />)
     
     expect(screen.getByText('Acceso al Panel de Admin')).toBeInTheDocument()
-    expect(screen.getByText('Iniciar Sesión')).toBeInTheDocument()
+    // Check the tab button
+    expect(screen.getAllByText('Iniciar Sesión')[0]).toBeInTheDocument()
+    // Check the email and password placeholders as rendered
     expect(screen.getByPlaceholderText('correo@ejemplo.com')).toBeInTheDocument()
     expect(screen.getByPlaceholderText('********')).toBeInTheDocument()
   })
@@ -75,16 +77,21 @@ describe('AuthForm', () => {
 
   it('handles form submission with valid data', async () => {
     const user = userEvent.setup()
-    renderWithRouter(<AuthForm />)
-    
     const emailInput = screen.getByPlaceholderText('correo@ejemplo.com')
     const passwordInput = screen.getByPlaceholderText('********')
-    const submitButton = screen.getByRole('button', { name: 'Iniciar Sesión' })
-    
-    await user.type(emailInput, 'test@example.com')
-    await user.type(passwordInput, 'password123')
+    // The submit button is the second "Iniciar Sesión" button (the first is the tab)
+    const submitButton = screen.getAllByText('Iniciar Sesión').find(
+      (el) => el.closest('button[type="submit"]')
+    ) as HTMLElement
+
+    await user.type(emailInput, 'aa@a.a')
+    await user.type(passwordInput, 'admin123')
     await user.click(submitButton)
+
+    expect(submitButton).toHaveTextContent('Iniciando sesión...')
     
     expect(submitButton).toHaveTextContent('Iniciando sesión...')
   })
+
+  
 })
